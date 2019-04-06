@@ -1,0 +1,59 @@
+// Frank and Goodman (2012) RSA model (Code adopted from Scontras, Tessler, and Frank; problang.org)
+
+// set of states (here: objects of reference)
+// we represent objects as JavaScript objects to demarcate them from utterances
+// internally we treat objects as strings nonetheless
+var objects = [{color: "blue", shape: "square", string: "blue square"},
+               {color: "blue", shape: "circle", string: "blue circle"},
+               {color: "green", shape: "square", string: "green square"}]
+
+// prior over world states
+var objectPrior = function() {
+  var obj = categorical([1,1,1], objects)
+  return obj.string 
+}
+
+// set of utterances
+var utterances = ["blue", "green", "square", "circle"]
+
+// utterance cost function
+var cost = function(utterance) {
+  return 0;
+};
+
+// meaning function to interpret the utterances
+var meaning = function(utterance, obj){
+  _.includes(obj, utterance)
+}
+
+// literal listener
+var literalListener = function(utterance){
+  Infer({model: function(){
+    var obj = objectPrior();
+    condition(meaning(utterance, obj))
+    return obj
+  }})
+}
+
+// set speaker optimality
+var alpha = 1
+
+// pragmatic speaker
+var speaker = function(obj){
+  Infer({model: function(){
+    var utterance = uniformDraw(utterances)
+    factor(alpha * (literalListener(utterance).score(obj) - cost(utterance)))
+    return utterance
+  }})
+}
+
+// pragmatic listener
+var pragmaticListener = function(utterance){
+  Infer({model: function(){
+    var obj = objectPrior()
+    observe(speaker(obj),utterance)
+    return obj
+  }})
+}
+
+viz.table(pragmaticListener("blue"))
