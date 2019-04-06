@@ -1,0 +1,54 @@
+// set of states (here: objects of reference)
+var objects = ["hat glasses",
+               "glasses"]
+
+// prior over world states
+var objectPrior = function() {
+  var obj = categorical([0.5, 0.5], objects)
+  return obj
+}
+
+// set of utterances
+var utterances = ["hat", "glasses"]
+
+// utterance cost function
+var cost = function(utterance) {
+  return 0;
+};
+
+// meaning function to interpret the utterances
+var meaning = function(utterance, obj){
+  _.includes(obj, utterance)
+}
+
+// literal listener
+var literalListener = function(utterance){
+  Infer({model: function(){
+    var obj = objectPrior();
+    condition(meaning(utterance, obj))
+    return obj
+  }})
+}
+
+// set speaker optimality
+var alpha = 1
+
+// pragmatic speaker
+var speaker = function(obj){
+  Infer({model: function(){
+    var utterance = uniformDraw(utterances)
+    factor(alpha * (literalListener(utterance).score(obj) - cost(utterance)))
+    return utterance
+  }})
+}
+
+// pragmatic listener
+var pragmaticListener = function(utterance){
+  Infer({model: function(){
+    var obj = objectPrior()
+    observe(speaker(obj),utterance)
+    return obj
+  }})
+}
+
+viz.table(pragmaticListener("glasses"))
