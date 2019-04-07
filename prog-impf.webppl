@@ -31,7 +31,7 @@ var statePrior = function() {
 //utterances and utterancePrior function; requires null utt due to threshold semantics
 var utterances = ["prog", "impf",""]
 var cost = {
-  "prog": 1,
+  "prog": 5,
   "impf": 1,
   "": 100
 }
